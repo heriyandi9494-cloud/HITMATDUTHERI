@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Bacaan alkitab</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<!-- Google Fonts Roboto -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* --- BODY --- */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: #f3e9ff; 
+    color: #333;
+    margin: 0;
+    padding: 10px;
+}
+
+/* --- TITLE --- */
+h2 {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 25px;
+    font-weight: 700;
+    color: #4a148c;
+    letter-spacing: 2px;
+}
+
+/* --- FORM WRAPPER --- */
+form {
+    background: #020a0c;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #6a1b9a;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* --- FORM INPUTS --- */
+form input, form select, form button {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #b39ddb;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+form button {
+    background: #22eee4;
+    color: #010c0d;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+form button:hover {
+    background: #4a148c;
+}
+
+/* --- TABLE WRAPPER --- */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* --- TABLE --- */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #6a1b9a;
+}
+
+/* --- HEADER --- */
+th {
+    background: #0c0d0d;
+    color: #e9efef;
+    padding: 12px;
+    font-size: 15px;
+    border-right: 1px solid #9575cd;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+th:last-child {
+    border-right: none;
+}
+
+/* --- TABLE ROWS --- */
+td {
+    padding: 10px;
+    font-size: 14px;
+    border-right: 1px solid #020006;
+    border-bottom: 1px solid #030007;
+}
+
+td:last-child {
+    border-right: none;
+}
+
+/* --- ROW HOVER --- */
+tr:hover {
+    background: #f3e5f5;
+    transition: 0.2s;
+}
+
+/* --- BUTTONS in TABLE --- */
+td button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #012524;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+td button:hover {
+    background: #b71c1c;
+}
+
+
+/* Responsive */
+@media (max-width: 600px) {
+    form input, form select, form button {
+        font-size: 14px;
+        flex: 1 1 100%;
+    }
+    th, td {
+        font-size: 12px;
+        padding: 8px;
+    }
+    h2 {
+        font-size: 1.5em;
+    }
+}
+
+</style>
+</head>
+<body>
+
+<h2>𝐇𝐈𝐓𝐌𝐀𝐓𝐃𝐔𝐓 𝐇𝐄𝐑𝐈</h2>
+
+<form id="formBacaan">
+    <input type="date" id="tanggal" required>
+    <input type="text" id="bacaan" placeholder="Bacaan" required>
+    <input type="number" id="jumlahPerikop" placeholder="Jumlah Perikop" min="1" required>
+    <input type="text" id="ayatEmas" placeholder="Ayat Emas" required>
+    <select id="keterangan" required>
+        <option value="Belum">𝐁𝐞𝐥𝐮𝐦</option>
+        <option value="Dibaca">𝐃𝐢𝐛𝐚𝐜𝐚</option>
+    </select>
+    <button type="submit">𝐓𝐚𝐦𝐛𝐚𝐡</button>
+</form>
+
+<div class="table-container">
+<table id="tabelBacaan">
+    <thead>
+        <tr>
+            <th>𝐍𝐎</th>
+            <th>𝐇𝐀𝐑𝐈</th>
+            <th>𝐓𝐀𝐍𝐆𝐆𝐀𝐋</th>
+            <th>𝐁𝐀𝐂𝐀𝐀𝐍</th>
+            <th>𝐉𝐏</th>
+            <th>𝐊𝐄𝐓𝐄𝐑𝐀𝐍𝐆𝐀𝐍</th>
+            <th>𝐀𝐘𝐀𝐓 𝐄𝐌𝐀𝐒</th>
+            <th>𝐀𝐊𝐒𝐈</th>
+            <th>𝐄𝐃𝐈𝐓</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data muncul di sini -->
+    </tbody>
+</table>
+</div>
+
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCHnFBBhKUg9I0f84ai8_X7kcuQjqgSK5w",
+  authDomain: "loginaksi.firebaseapp.com",
+  databaseURL: "https://loginaksi-default-rtdb.firebaseio.com",
+  projectId: "loginaksi",
+  storageBucket: "loginaksi.firebasestorage.app",
+  messagingSenderId: "720249983474",
+  appId: "1:720249983474:web:94ce4af4322238bd699b6b",
+  measurementId: "G-J1EX2T6LCK"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ref = db.ref('bacaanHarian');
+
+function getHari(tanggal) {
+    const hariArr = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    return hariArr[new Date(tanggal).getDay()];
+}
+
+function renderTable(data) {
+    const tbody = document.querySelector('#tabelBacaan tbody');
+    tbody.innerHTML = '';
+    let no = 1;
+    for (let key in data) {
+        const row = data[key];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${no++}</td>
+            <td>${row.hari}</td>
+            <td>${row.tanggal}</td>
+            <td>${row.bacaan}</td>
+            <td>${row.jumlahPerikop}</td>
+            <td>${row.keterangan}</td>
+            <td>${row.ayatEmas}</td>
+            <td><button onclick="lihatKalimat('${key}')">Lihat</button></td>
+            <td><button onclick="editData('${key}')">Edit</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+}
+
+function lihatKalimat(key) {
+    ref.child(key).once('value', snap => {
+        const data = snap.val();
+        alert(`Hari: ${data.hari}\nTanggal: ${data.tanggal}\nBacaan: ${data.bacaan}\nJumlah Perikop: ${data.jumlahPerikop}\nKeterangan: ${data.keterangan}\nAyat Emas: ${data.ayatEmas}`);
+    });
+}
+
+function editData(key) {
+    ref.child(key).once('value', snap => {
+        const data = snap.val();
+        document.getElementById('tanggal').value = data.tanggal;
+        document.getElementById('bacaan').value = data.bacaan;
+        document.getElementById('jumlahPerikop').value = data.jumlahPerikop;
+        document.getElementById('ayatEmas').value = data.ayatEmas;
+        document.getElementById('keterangan').value = data.keterangan;
+
+        const form = document.getElementById('formBacaan');
+        form.removeEventListener('submit', addDataHandler);
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            const tanggal = document.getElementById('tanggal').value;
+            const bacaan = document.getElementById('bacaan').value;
+            const jumlahPerikop = document.getElementById('jumlahPerikop').value;
+            const ayatEmas = document.getElementById('ayatEmas').value;
+            const keterangan = document.getElementById('keterangan').value;
+            const hari = getHari(tanggal);
+
+            ref.child(key).update({ tanggal, hari, bacaan, jumlahPerikop, keterangan, ayatEmas });
+            form.reset();
+            form.onsubmit = addDataHandler;
+        }
+    });
+}
+
+function addDataHandler(e) {
+    e.preventDefault();
+    const tanggal = document.getElementById('tanggal').value;
+    const bacaan = document.getElementById('bacaan').value;
+    const jumlahPerikop = document.getElementById('jumlahPerikop').value;
+    const ayatEmas = document.getElementById('ayatEmas').value;
+    const keterangan = document.getElementById('keterangan').value;
+    const hari = getHari(tanggal);
+
+    const newKey = ref.push().key;
+    ref.child(newKey).set({ tanggal, hari, bacaan, jumlahPerikop, keterangan, ayatEmas });
+
+    document.getElementById('formBacaan').reset();
+}
+
+document.getElementById('formBacaan').addEventListener('submit', addDataHandler);
+
+ref.on('value', snap => {
+    if(snap.exists()) renderTable(snap.val());
+});
+</script>
+
+</body>
+</html>
