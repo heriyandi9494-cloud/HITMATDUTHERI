@@ -3,284 +3,367 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laporan Bacaan alkitab</title>
-<!-- Firebase SDK -->
+<title>Laporan Bacaan Alkitab + Login</title>
+
+<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-<!-- Google Fonts Roboto -->
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-/* --- BODY --- */
+/* Reset */
+* { margin:0; padding:0; box-sizing:border-box; }
+
 body {
-    font-family: 'Roboto', sans-serif;
-    background: #f3e9ff; 
-    color: #333;
-    margin: 0;
-    padding: 10px;
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(to right, #f3e9ff, #e0f7fa);
+  min-height: 100vh;
+  padding: 16px;
+  color: #333;
 }
 
-/* --- TITLE --- */
-h2 {
-    text-align: center;
-    font-size: 2em;
-    margin-bottom: 25px;
-    font-weight: 700;
-    color: #4a148c;
-    letter-spacing: 2px;
+.container { max-width: 980px; margin:0 auto; }
+
+h2 { 
+  text-align:center; 
+  color:#4a148c; 
+  margin-bottom:24px; 
+  font-weight:700;
 }
 
-/* --- FORM WRAPPER --- */
-form {
-    background: #020a0c;
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid #6a1b9a;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+.card {
+  background:#fff; 
+  padding:20px; 
+  border-radius:12px; 
+  box-shadow:0 8px 25px rgba(0,0,0,0.08); 
+  margin-bottom:20px;
+  transition: transform 0.2s;
 }
 
-/* --- FORM INPUTS --- */
-form input, form select, form button {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #b39ddb;
-    font-size: 14px;
-    margin-bottom: 10px;
+.card:hover { transform: translateY(-2px); }
+
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+
+input, select, button {
+  width:100%; 
+  padding:12px; 
+  margin:6px 0; 
+  border-radius:8px; 
+  border:1px solid #ccc;
+  font-size:15px;
+  transition: border 0.2s, box-shadow 0.2s;
 }
 
-form button {
-    background: #22eee4;
-    color: #010c0d;
-    border: none;
-    font-weight: 600;
-    font-size: 15px;
-    transition: 0.3s;
+input:focus, select:focus {
+  border-color:#4a148c;
+  box-shadow: 0 0 6px rgba(74,20,140,0.2);
+  outline:none;
 }
 
-form button:hover {
-    background: #4a148c;
+button {
+  background:#4a148c; 
+  color:#fff; 
+  border:none; 
+  cursor:pointer;
+  font-weight:500;
+  transition: background 0.2s;
 }
 
-/* --- TABLE WRAPPER --- */
-.table-container {
-    width: 100%;
-    overflow-x: auto;
+button:hover { background:#6a1b9a; }
+
+button.secondary { background:#22eee4; color:#000; }
+button.secondary:hover { background:#00bcd4; }
+
+button.danger { background:#c62828; color:#fff; }
+button.danger:hover { background:#e53935; }
+
+.table-container { width:100%; overflow-x:auto; margin-top:16px; border-radius:8px; }
+
+table { width:100%; border-collapse:collapse; min-width:700px; }
+
+th,td { padding:10px 12px; border:1px solid #ddd; text-align:left; }
+
+th { background:#4a148c; color:#fff; font-weight:500; }
+
+td { font-size:14px; }
+
+td:nth-child(2) { color:green; font-weight:500; } /* Hari */
+td:nth-child(5) { color:#ff9800; font-weight:500; } /* JP */
+td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
+
+.small { font-size:13px; color:#555; }
+
+@media (max-width:700px){ 
+  .grid{ grid-template-columns: 1fr; } 
+  th,td { font-size:13px; padding:8px; }
+  input, select, button { font-size:14px; padding:10px; }
 }
-
-/* --- TABLE --- */
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #ffffff;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 2px solid #6a1b9a;
-}
-
-/* --- HEADER --- */
-th {
-    background: #0c0d0d;
-    color: #e9efef;
-    padding: 12px;
-    font-size: 15px;
-    border-right: 1px solid #9575cd;
-    text-transform: uppercase;
-    font-weight: 700;
-}
-
-th:last-child {
-    border-right: none;
-}
-
-/* --- TABLE ROWS --- */
-td {
-    padding: 10px;
-    font-size: 14px;
-    border-right: 1px solid #020006;
-    border-bottom: 1px solid #030007;
-}
-
-td:last-child {
-    border-right: none;
-}
-
-/* --- ROW HOVER --- */
-tr:hover {
-    background: #f3e5f5;
-    transition: 0.2s;
-}
-
-/* --- BUTTONS in TABLE --- */
-td button {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    background: #012524;
-    color: #fff;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-td button:hover {
-    background: #b71c1c;
-}
-
-
-/* Responsive */
-@media (max-width: 600px) {
-    form input, form select, form button {
-        font-size: 14px;
-        flex: 1 1 100%;
-    }
-    th, td {
-        font-size: 12px;
-        padding: 8px;
-    }
-    h2 {
-        font-size: 1.5em;
-    }
-}
-
 </style>
 </head>
 <body>
 
-<h2>𝐇𝐈𝐓𝐌𝐀𝐓𝐃𝐔𝐓 𝐇𝐄𝐑𝐈</h2>
+<div class="container">
+  <h2>Laporan Bacaan Alkitab</h2>
 
-<form id="formBacaan">
-    <input type="date" id="tanggal" required>
-    <input type="text" id="bacaan" placeholder="Bacaan" required>
-    <input type="number" id="jumlahPerikop" placeholder="Jumlah Perikop" min="1" required>
-    <input type="text" id="ayatEmas" placeholder="Ayat Emas" required>
-    <select id="keterangan" required>
-        <option value="Belum">𝐁𝐞𝐥𝐮𝐦</option>
-        <option value="Dibaca">𝐃𝐢𝐛𝐚𝐜𝐚</option>
-    </select>
-    <button type="submit">𝐓𝐚𝐦𝐛𝐚𝐡</button>
-</form>
+  <!-- LOGIN CARD -->
+  <div id="loginCard" class="card">
+    <h3 style="color:#4a148c; margin-bottom:12px;">𝐒𝐄𝐋𝐀𝐌𝐀𝐓 𝐃𝐀𝐓𝐀𝐍𝐆</h3>
+    <div class="grid">
+      <div>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button id="btnLogin" disabled>Login</button>
+        <button id="btnRegister" class="secondary" disabled>Daftar</button>
+      </div>
+      <div>
+        <p class="small">𝙏𝙚𝙜𝙪𝙝𝙠𝙖𝙣𝙡𝙖𝙝 𝙄𝙢𝙖𝙣𝙢𝙪, 𝙩𝙚𝙧𝙪𝙨𝙡𝙖𝙝 𝙢𝙚𝙢𝙗𝙖𝙘𝙖 𝙖𝙜𝙖𝙧 𝙚𝙣𝙜𝙠𝙖𝙪 𝙩𝙖𝙪 𝙖𝙧𝙩𝙞 𝙠𝙚𝙗𝙚𝙣𝙖𝙧𝙖𝙣 𝙝𝙞𝙙𝙪𝙥 𝙨𝙚𝙨𝙪𝙣𝙜𝙜𝙪𝙝𝙣𝙮𝙖, 𝙟𝙖𝙣𝙜𝙖𝙣𝙡𝙖𝙝 𝙠𝙞𝙧𝙖𝙣𝙮𝙖 𝙢𝙚𝙣𝙟𝙖𝙙𝙞 𝙨𝙚𝙧𝙪𝙥𝙖 𝙙𝙚𝙣𝙜𝙖𝙣 𝙙𝙪𝙣𝙞𝙖, 𝙩𝙚𝙩𝙖𝙥𝙞 𝙥𝙚𝙧𝙗𝙖𝙧𝙪𝙞𝙡𝙖𝙝 𝙙𝙞𝙧𝙞𝙢𝙪 𝙙𝙖𝙡𝙖𝙢 𝙥𝙞𝙠𝙞𝙧𝙖𝙣 𝙮𝙖𝙣𝙜 𝙟𝙚𝙧𝙣𝙞𝙝, 𝙟𝙖𝙙𝙞𝙠𝙖𝙣 𝙁𝙞𝙧𝙢𝙖𝙣 𝙮𝙖𝙣𝙜 𝙠𝙖𝙪 𝙗𝙖𝙘𝙖 𝙨𝙚𝙗𝙖𝙜𝙖𝙞 𝙥𝙚𝙡𝙞𝙩𝙖 𝙮𝙖𝙣𝙜 𝙢𝙚𝙣𝙚𝙧𝙖𝙣𝙜𝙞 𝙟𝙞𝙬𝙖𝙢𝙪, 𝙮𝙖𝙣𝙜 𝙖𝙠𝙖𝙣 𝙢𝙚𝙣𝙪𝙣𝙩𝙪𝙣 𝙝𝙞𝙙𝙪𝙥𝙢𝙪 𝙖𝙜𝙖𝙧 𝙡𝙚𝙗𝙞𝙝 𝙗𝙖𝙞𝙠.</p>
+      </div>
+    </div>
+    <div id="authMessage" style="color:#c62828; margin-top:8px"></div>
+  </div>
 
-<div class="table-container">
-<table id="tabelBacaan">
-    <thead>
-        <tr>
-            <th>𝐍𝐎</th>
-            <th>𝐇𝐀𝐑𝐈</th>
-            <th>𝐓𝐀𝐍𝐆𝐆𝐀𝐋</th>
-            <th>𝐁𝐀𝐂𝐀𝐀𝐍</th>
-            <th>𝐉𝐏</th>
-            <th>𝐊𝐄𝐓𝐄𝐑𝐀𝐍𝐆𝐀𝐍</th>
-            <th>𝐀𝐘𝐀𝐓 𝐄𝐌𝐀𝐒</th>
-            <th>𝐀𝐊𝐒𝐈</th>
-            <th>𝐄𝐃𝐈𝐓</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Data muncul di sini -->
-    </tbody>
-</table>
+  <!-- APP CARD -->
+  <div id="appCard" class="card" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div><strong id="userEmail"></strong></div>
+      <div style="display:flex; gap:8px;">
+        <button id="btnLogout" class="danger">Logout</button>
+      </div>
+    </div>
+
+    <!-- FORM INPUT -->
+    <form id="formBacaan">
+      <div class="grid">
+        <div><input type="date" id="tanggal" required></div>
+        <div><input type="text" id="bacaan" placeholder="Bacaan (mis. Mazmur 23)" required></div>
+      </div>
+      <div class="grid">
+        <div><input type="number" id="jumlahPerikop" placeholder="Jumlah Perikop" min="1" required></div>
+        <div><input type="text" id="ayatEmas" placeholder="Ayat Emas" required></div>
+      </div>
+      <div style="margin-top:8px">
+        <select id="keterangan" required>
+          <option value="Belum">Belum</option>
+          <option value="Dibaca">Dibaca</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="submit">Tambah</button>
+        <button type="button" id="btnCancelEdit" style="display:none; background:#777">Batal Edit</button>
+      </div>
+    </form>
+
+    <!-- TABLE -->
+    <div class="table-container">
+      <table id="tabelBacaan">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Hari</th>
+            <th>Tanggal</th>
+            <th>Bacaan</th>
+            <th>JP</th>
+            <th>Keterangan</th>
+            <th>Ayat Emas</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
+<!-- SCRIPT FIREBASE -->
 <script>
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCHnFBBhKUg9I0f84ai8_X7kcuQjqgSK5w",
-  authDomain: "loginaksi.firebaseapp.com",
-  databaseURL: "https://loginaksi-default-rtdb.firebaseio.com",
-  projectId: "loginaksi",
-  storageBucket: "loginaksi.firebasestorage.app",
-  messagingSenderId: "720249983474",
-  appId: "1:720249983474:web:94ce4af4322238bd699b6b",
-  measurementId: "G-J1EX2T6LCK"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const ref = db.ref('bacaanHarian');
+(function(){
+  try {
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnKpRiVbuCjLpWCetv-4jwt6LO6GdKyTU",
+      authDomain: "laporan-bacaan-alkitab.firebaseapp.com",
+      projectId: "laporan-bacaan-alkitab",
+      storageBucket: "laporan-bacaan-alkitab.firebasestorage.app",
+      messagingSenderId: "410352283012",
+      appId: "1:410352283012:web:891a33bf2e1f964adf81d1",
+      measurementId: "G-6P7YC0MZRD"
+    };
 
-function getHari(tanggal) {
-    const hariArr = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-    return hariArr[new Date(tanggal).getDay()];
-}
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-function renderTable(data) {
-    const tbody = document.querySelector('#tabelBacaan tbody');
-    tbody.innerHTML = '';
-    let no = 1;
-    for (let key in data) {
-        const row = data[key];
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${no++}</td>
-            <td>${row.hari}</td>
-            <td>${row.tanggal}</td>
-            <td>${row.bacaan}</td>
-            <td>${row.jumlahPerikop}</td>
-            <td>${row.keterangan}</td>
-            <td>${row.ayatEmas}</td>
-            <td><button onclick="lihatKalimat('${key}')">Lihat</button></td>
-            <td><button onclick="editData('${key}')">Edit</button></td>
-        `;
-        tbody.appendChild(tr);
+    const loginCard = document.getElementById('loginCard');
+    const appCard = document.getElementById('appCard');
+    const userEmailEl = document.getElementById('userEmail');
+    const authMessage = document.getElementById('authMessage');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnRegister = document.getElementById('btnRegister');
+    const btnLogout = document.getElementById('btnLogout');
+    const form = document.getElementById('formBacaan');
+    const btnCancelEdit = document.getElementById('btnCancelEdit');
+
+    btnLogin.disabled = false;
+    btnRegister.disabled = false;
+
+    let currentUserRef = null;
+    let currentListener = null;
+    let editKey = null;
+
+    function getHari(tanggal) {
+      if (!tanggal) return '';
+      const parts = tanggal.split('-');
+      if (parts.length !== 3) return '';
+      const d = new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
+      return ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][d.getDay()];
     }
-}
 
-function lihatKalimat(key) {
-    ref.child(key).once('value', snap => {
-        const data = snap.val();
-        alert(`Hari: ${data.hari}\nTanggal: ${data.tanggal}\nBacaan: ${data.bacaan}\nJumlah Perikop: ${data.jumlahPerikop}\nKeterangan: ${data.keterangan}\nAyat Emas: ${data.ayatEmas}`);
+    function showAuthError(msg){
+      console.error(msg);
+      authMessage.textContent = msg;
+      setTimeout(()=> authMessage.textContent = '', 4000);
+    }
+
+    function detachListener(){
+      try{ if(currentUserRef && currentListener){ currentUserRef.off('value', currentListener); currentListener=null; } }
+      catch(err){ console.error('Gagal detach listener', err); }
+    }
+
+    btnLogin.addEventListener('click', () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if(!email || !password){ showAuthError('Masukkan email & password'); return; }
+      auth.signInWithEmailAndPassword(email,password).catch(err=>showAuthError(err.message||err));
     });
-}
 
-function editData(key) {
-    ref.child(key).once('value', snap => {
-        const data = snap.val();
-        document.getElementById('tanggal').value = data.tanggal;
-        document.getElementById('bacaan').value = data.bacaan;
-        document.getElementById('jumlahPerikop').value = data.jumlahPerikop;
-        document.getElementById('ayatEmas').value = data.ayatEmas;
-        document.getElementById('keterangan').value = data.keterangan;
+    btnRegister.addEventListener('click', () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if(!email || !password){ showAuthError('Masukkan email & password untuk daftar'); return; }
+      auth.createUserWithEmailAndPassword(email,password)
+      .then(()=>{ alert('Pendaftaran berhasil — silakan login.'); })
+      .catch(err=>showAuthError(err.message||err));
+    });
 
-        const form = document.getElementById('formBacaan');
-        form.removeEventListener('submit', addDataHandler);
-        form.onsubmit = function(e) {
-            e.preventDefault();
-            const tanggal = document.getElementById('tanggal').value;
-            const bacaan = document.getElementById('bacaan').value;
-            const jumlahPerikop = document.getElementById('jumlahPerikop').value;
-            const ayatEmas = document.getElementById('ayatEmas').value;
-            const keterangan = document.getElementById('keterangan').value;
-            const hari = getHari(tanggal);
+    btnLogout.addEventListener('click', ()=>auth.signOut().catch(err=>showAuthError(err.message||err)));
 
-            ref.child(key).update({ tanggal, hari, bacaan, jumlahPerikop, keterangan, ayatEmas });
-            form.reset();
-            form.onsubmit = addDataHandler;
+    auth.onAuthStateChanged(user=>{
+      try{
+        detachListener();
+        editKey=null;
+        btnCancelEdit.style.display='none';
+        if(user){
+          loginCard.style.display='none';
+          appCard.style.display='block';
+          userEmailEl.textContent=user.email;
+          currentUserRef = db.ref('bacaanHarian/'+user.uid);
+          currentListener = currentUserRef.on('value', snap=>{
+            renderTable(snap.exists()?snap.val():null);
+          }, err=>showAuthError('Error saat membaca data: '+(err.message||err)));
+        }else{
+          loginCard.style.display='block';
+          appCard.style.display='none';
+          userEmailEl.textContent='';
+          currentUserRef=null;
         }
+      }catch(err){ showAuthError('onAuthStateChanged error: '+err.message); }
     });
-}
 
-function addDataHandler(e) {
-    e.preventDefault();
-    const tanggal = document.getElementById('tanggal').value;
-    const bacaan = document.getElementById('bacaan').value;
-    const jumlahPerikop = document.getElementById('jumlahPerikop').value;
-    const ayatEmas = document.getElementById('ayatEmas').value;
-    const keterangan = document.getElementById('keterangan').value;
-    const hari = getHari(tanggal);
+    function renderTable(data){
+      try{
+        const tbody = document.querySelector('#tabelBacaan tbody');
+        tbody.innerHTML='';
+        if(!data) return;
+        const entries = Object.entries(data).reverse();
+        let no=1;
+        for(const [key,r] of entries){
+          const tr=document.createElement('tr');
+          tr.innerHTML=`
+            <td>${no++}</td>
+            <td>${r.hari||''}</td>
+            <td>${r.tanggal||''}</td>
+            <td>${r.bacaan||''}</td>
+            <td>${r.jumlahPerikop||''}</td>
+            <td>${r.keterangan||''}</td>
+            <td>${r.ayatEmas||''}</td>
+            <td>
+              <button data-key="${key}" class="btnView">Lihat</button>
+              <button data-key="${key}" class="btnEdit">Edit</button>
+              <button data-key="${key}" class="btnDelete">Hapus</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
 
-    const newKey = ref.push().key;
-    ref.child(newKey).set({ tanggal, hari, bacaan, jumlahPerikop, keterangan, ayatEmas });
+        tbody.querySelectorAll('.btnView').forEach(b=>b.addEventListener('click', e=>{
+          const key=e.currentTarget.dataset.key;
+          if(!currentUserRef) return showAuthError('User reference kosong');
+          currentUserRef.child(key).once('value',s=>{
+            const d=s.val();
+            if(!d) return showAuthError('Data tidak ditemukan');
+            alert(`Hari: ${d.hari}\nTanggal: ${d.tanggal}\nBacaan: ${d.bacaan}\nJP: ${d.jumlahPerikop}\nKeterangan: ${d.keterangan}\nAyat Emas: ${d.ayatEmas}`);
+          }).catch(err=>showAuthError(err.message||err));
+        }));
 
-    document.getElementById('formBacaan').reset();
-}
+        tbody.querySelectorAll('.btnEdit').forEach(b=>b.addEventListener('click', e=>{
+          const key=e.currentTarget.dataset.key;
+          if(!currentUserRef) return showAuthError('User reference kosong');
+          currentUserRef.child(key).once('value',s=>{
+            const d=s.val();
+            if(!d) return showAuthError('Data tidak ditemukan');
+            document.getElementById('tanggal').value=d.tanggal||'';
+            document.getElementById('bacaan').value=d.bacaan||'';
+            document.getElementById('jumlahPerikop').value=d.jumlahPerikop||'';
+            document.getElementById('ayatEmas').value=d.ayatEmas||'';
+            document.getElementById('keterangan').value=d.keterangan||'Belum';
+            editKey=key;
+            btnCancelEdit.style.display='inline-block';
+          }).catch(err=>showAuthError(err.message||err));
+        }));
 
-document.getElementById('formBacaan').addEventListener('submit', addDataHandler);
+        tbody.querySelectorAll('.btnDelete').forEach(b=>b.addEventListener('click', e=>{
+          const key=e.currentTarget.dataset.key;
+          if(!confirm('Hapus data ini?')) return;
+          if(!currentUserRef) return showAuthError('User reference kosong');
+          currentUserRef.child(key).remove().catch(err=>showAuthError(err.message||err));
+        }));
 
-ref.on('value', snap => {
-    if(snap.exists()) renderTable(snap.val());
-});
+      }catch(err){ showAuthError('renderTable error: '+err.message); }
+    }
+
+    form.addEventListener('submit', e=>{
+      e.preventDefault();
+      try{
+        if(!auth.currentUser) return showAuthError('Silakan login terlebih dahulu');
+        if(!currentUserRef) return showAuthError('Reference database belum siap');
+
+        const tanggal=document.getElementById('tanggal').value;
+        const bacaan=document.getElementById('bacaan').value.trim();
+        const jumlahPerikop=document.getElementById('jumlahPerikop').value;
+        const ayatEmas=document.getElementById('ayatEmas').value.trim();
+        const keterangan=document.getElementById('keterangan').value;
+        const hari=getHari(tanggal);
+
+        if(!tanggal||!bacaan||!jumlahPerikop||!ayatEmas){ showAuthError('Lengkapi semua bidang'); return; }
+
+        const payload={ tanggal, hari, bacaan, jumlahPerikop:Number(jumlahPerikop), keterangan, ayatEmas };
+
+        if(editKey){
+          currentUserRef.child(editKey).update(payload).then(()=>{
+            editKey=null; btnCancelEdit.style.display='none'; form.reset();
+          }).catch(err=>showAuthError(err.message||err));
+        }else{
+          currentUserRef.push().set(payload).then(()=>form.reset()).catch(err=>showAuthError(err.message||err));
+        }
+      }catch(err){ showAuthError('form submit error: '+err.message); }
+    });
+
+    btnCancelEdit.addEventListener('click', ()=>{ editKey=null; btnCancelEdit.style.display='none'; form.reset(); });
+
+  }catch(e){ console.error('Fatal error inisialisasi script:',e); authMessage.textContent='Terjadi kesalahan inisialisasi — lihat console'; }
+})();
 </script>
 
 </body>
