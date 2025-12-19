@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -145,6 +146,10 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
         <div><input type="text" id="ayatEmas" placeholder="Ayat Emas" required></div>
       </div>
       <div style="margin-top:8px">
+  <textarea id="maknaBacaan" placeholder="Makna Bacaan / Renungan" rows="4"
+    style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;"></textarea>
+</div>
+      <div style="margin-top:8px">
         <select id="keterangan" required>
           <option value="Belum">Belum</option>
           <option value="Dibaca">Dibaca</option>
@@ -168,6 +173,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
             <th>JP</th>
             <th>Keterangan</th>
             <th>Ayat Emas</th>
+            <th>Makna Bacaan</th>
             <th>Aksi</th>
           </tr>
         </thead>
@@ -288,6 +294,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
             <td>${r.jumlahPerikop||''}</td>
             <td>${r.keterangan||''}</td>
             <td>${r.ayatEmas||''}</td>
+            <td>${r.maknaBacaan || ''}</td>
             <td>
               <button data-key="${key}" class="btnView">Lihat</button>
               <button data-key="${key}" class="btnEdit">Edit</button>
@@ -303,11 +310,12 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
           currentUserRef.child(key).once('value',s=>{
             const d=s.val();
             if(!d) return showAuthError('Data tidak ditemukan');
-            alert(`Hari: ${d.hari}\nTanggal: ${d.tanggal}\nBacaan: ${d.bacaan}\nJP: ${d.jumlahPerikop}\nKeterangan: ${d.keterangan}\nAyat Emas: ${d.ayatEmas}`);
+            alert(`Hari: ${d.hari}\nTanggal: ${d.tanggal}\nBacaan: ${d.bacaan}\nJP: ${d.jumlahPerikop}\nKeterangan: ${d.keterangan}\nAyat Emas: ${d.ayatEmas} Makna Bacaan: ${d.maknaBacaan || '-'}`);
           }).catch(err=>showAuthError(err.message||err));
         }));
 
         tbody.querySelectorAll('.btnEdit').forEach(b=>b.addEventListener('click', e=>{
+
           const key=e.currentTarget.dataset.key;
           if(!currentUserRef) return showAuthError('User reference kosong');
           currentUserRef.child(key).once('value',s=>{
@@ -318,6 +326,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
             document.getElementById('jumlahPerikop').value=d.jumlahPerikop||'';
             document.getElementById('ayatEmas').value=d.ayatEmas||'';
             document.getElementById('keterangan').value=d.keterangan||'Belum';
+            document.getElementById('maknaBacaan').value = d.maknaBacaan || '';
             editKey=key;
             btnCancelEdit.style.display='inline-block';
           }).catch(err=>showAuthError(err.message||err));
@@ -344,11 +353,12 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
         const jumlahPerikop=document.getElementById('jumlahPerikop').value;
         const ayatEmas=document.getElementById('ayatEmas').value.trim();
         const keterangan=document.getElementById('keterangan').value;
+        const maknaBacaan = document.getElementById('maknaBacaan').value.trim();
         const hari=getHari(tanggal);
 
-        if(!tanggal||!bacaan||!jumlahPerikop||!ayatEmas){ showAuthError('Lengkapi semua bidang'); return; }
+        if(!tanggal||!bacaan||!jumlahPerikop||!ayatEmas||!maknaBacaan){ showAuthError('Lengkapi semua bidang'); return; }
 
-        const payload={ tanggal, hari, bacaan, jumlahPerikop:Number(jumlahPerikop), keterangan, ayatEmas };
+        const payload={ tanggal, hari, bacaan, jumlahPerikop:Number(jumlahPerikop), keterangan, ayatEmas, maknaBacaan };
 
         if(editKey){
           currentUserRef.child(editKey).update(payload).then(()=>{
