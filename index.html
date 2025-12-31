@@ -155,6 +155,9 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
           <option value="Dibaca">Dibaca</option>
         </select>
       </div>
+      <div style="margin-top:8px">
+    <textarea id="doa" placeholder="Doa" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;"></textarea>
+</div>
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="submit">Tambah</button>
         <button type="button" id="btnCancelEdit" style="display:none; background:#777">Batal Edit</button>
@@ -174,7 +177,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
             <th>Keterangan</th>
             <th>Ayat Emas</th>
             <th>Makna Bacaan</th>
-            <th>Aksi</th>
+            <th>Lihat</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -296,7 +299,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
             <td>${r.ayatEmas||''}</td>
             <td>${r.maknaBacaan || ''}</td>
             <td>
-              <button data-key="${key}" class="btnView">Lihat</button>
+              <button data-key="${key}" class="btnView">Doa</button>
               <button data-key="${key}" class="btnEdit">Edit</button>
               <button data-key="${key}" class="btnDelete">Hapus</button>
             </td>
@@ -310,6 +313,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
           currentUserRef.child(key).once('value',s=>{
             const d=s.val();
             if(!d) return showAuthError('Data tidak ditemukan');
+            alert(`Doa: ${d.doa || '-'}`);
             alert(`Hari: ${d.hari}\nTanggal: ${d.tanggal}\nBacaan: ${d.bacaan}\nJP: ${d.jumlahPerikop}\nKeterangan: ${d.keterangan}\nAyat Emas: ${d.ayatEmas} Makna Bacaan: ${d.maknaBacaan || '-'}`);
           }).catch(err=>showAuthError(err.message||err));
         }));
@@ -327,6 +331,7 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
             document.getElementById('ayatEmas').value=d.ayatEmas||'';
             document.getElementById('keterangan').value=d.keterangan||'Belum';
             document.getElementById('maknaBacaan').value = d.maknaBacaan || '';
+            document.getElementById('doa').value = d.doa || '';
             editKey=key;
             btnCancelEdit.style.display='inline-block';
           }).catch(err=>showAuthError(err.message||err));
@@ -357,8 +362,8 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
         const hari=getHari(tanggal);
 
         if(!tanggal||!bacaan||!jumlahPerikop||!ayatEmas||!maknaBacaan){ showAuthError('Lengkapi semua bidang'); return; }
-
-        const payload={ tanggal, hari, bacaan, jumlahPerikop:Number(jumlahPerikop), keterangan, ayatEmas, maknaBacaan };
+        const doa = document.getElementById('doa').value.trim();
+        const payload={ tanggal, hari, bacaan, jumlahPerikop:Number(jumlahPerikop), keterangan, ayatEmas, maknaBacaan, doa };
 
         if(editKey){
           currentUserRef.child(editKey).update(payload).then(()=>{
