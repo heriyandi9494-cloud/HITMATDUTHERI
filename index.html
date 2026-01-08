@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -26,7 +27,21 @@ body {
   color: #333;
 }
 
-.container { max-width: 980px; margin:0 auto; }
+.container { width: 95%; max-width: 1200px; margin:0 auto; }
+.table-container {
+  width: 100%;
+  overflow-x: auto;   /* tambahkan scroll horizontal jika tabel lebar */
+  margin-top: 16px;
+  border-radius: 8px;
+}
+table td, table th {
+  min-width: 80px;      /* sesuaikan sesuai kebutuhan */
+  word-wrap: break-word; /* teks panjang dipotong ke baris baru */
+}
+@media (max-width:700px){
+  .table-container { overflow-x: scroll; }
+  table td, table th { font-size: 13px; padding: 8px; }
+}
 
 h2 { 
   text-align:center; 
@@ -102,9 +117,76 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
   th,td { font-size:13px; padding:8px; }
   input, select, button { font-size:14px; padding:10px; }
 }
+.popup p {
+  text-align: justify; /* membuat teks rata kiri dan kanan */
+  text-justify: inter-word; /* memastikan spasi antar kata diperluas */
+}
+.popup {
+  padding: 15px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  width: 300px; /* sesuaikan ukuran */
+}
+.popup p {
+  line-height: 1.6;
+}
+td.maknaBacaan, td.doa {
+  text-align: justify;       /* rata kiri-kanan */
+  text-justify: inter-word;  /* memastikan spasi antar kata merata */
+  line-height: 1.5;          /* jarak antar baris lebih nyaman */
+}
+table td {
+  text-align: justify;
+  text-justify: inter-word;
+  line-height: 1.4;
+}
+td.keterangan.belum {
+  color: red;
+  font-weight: 500;
+}
+
+td.keterangan.dibaca {
+  color: green;
+  font-weight: 500;
+}
+td.tanggal {
+  text-align: center;    /* rata tengah */
+  white-space: nowrap;   /* mencegah teks pecah ke baris baru */
+  padding: 8px 12px;
+}
+
 </style>
 </head>
 <body>
+<!-- POPUP MODAL DETAIL BACAAAN -->
+<div id="modalPopup" style="
+    display:none; 
+    position:fixed; top:0; left:0; width:100%; height:100%; 
+    background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;
+">
+  <div style="
+      background:#fff; 
+      padding:20px; 
+      border-radius:12px; 
+      max-width:500px; 
+      width:90%; 
+      max-height:80vh;
+      overflow-y:auto;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      position:relative;
+  ">
+    <h3 style="margin-bottom:12px; color:#4a148c;">Detail Bacaan & Doa</h3>
+    <div id="modalContent" style="font-size:14px; color:#333; line-height:1.5;"></div>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="modalEdit" style="
+        flex:1; padding:10px 16px; border:none; border-radius:8px; background:#ff9800; color:#fff; cursor:pointer;">Edit</button>
+      <button id="modalDelete" style="
+        flex:1; padding:10px 16px; border:none; border-radius:8px; background:#c62828; color:#fff; cursor:pointer;">Hapus</button>
+      <button id="modalClose" style="
+        flex:1; padding:10px 16px; border:none; border-radius:8px; background:#4a148c; color:#fff; cursor:pointer;">Tutup</button>
+    </div>
+  </div>
+</div>
 
 <div class="container">
   <h2>Berilah aku pengertian, maka aku akan memegang Taurat-Mu dan menjaganya dengan segenap hati</h2>
@@ -279,6 +361,15 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
         }
       }catch(err){ showAuthError('onAuthStateChanged error: '+err.message); }
     });
+function formatTanggal(tanggalStr) {
+  if (!tanggalStr) return '';
+  const [tahun, bulan, hari] = tanggalStr.split('-');
+  const bulanNama = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  return `${Number(hari)} ${bulanNama[Number(bulan)-1]} ${tahun}`;
+}
 
     function renderTable(data){
       try{
@@ -292,50 +383,96 @@ td:nth-child(6) { color:red; font-weight:500; } /* Keterangan */
           tr.innerHTML=`
             <td>${no++}</td>
             <td>${r.hari||''}</td>
-            <td>${r.tanggal||''}</td>
+            <td class="tanggal">${formatTanggal(r.tanggal)}</td>
             <td>${r.bacaan||''}</td>
             <td>${r.jumlahPerikop||''}</td>
-            <td>${r.keterangan||''}</td>
+            <td class="keterangan ${r.keterangan.toLowerCase() || ''}">${r.keterangan||''}</td>
             <td>${r.ayatEmas||''}</td>
             <td>${r.maknaBacaan || ''}</td>
             <td>
-              <button data-key="${key}" class="btnView">Doa</button>
-              <button data-key="${key}" class="btnEdit">Edit</button>
-              <button data-key="${key}" class="btnDelete">Hapus</button>
+              <button data-key="${key}" class="btnView">░V░i░e░w░</button>
             </td>
           `;
           tbody.appendChild(tr);
         }
+const modal = document.getElementById('modalPopup');
+const modalContent = document.getElementById('modalContent');
+const modalClose = document.getElementById('modalClose');
+const modalEdit = document.getElementById('modalEdit');
+const modalDelete = document.getElementById('modalDelete');
 
-        tbody.querySelectorAll('.btnView').forEach(b=>b.addEventListener('click', e=>{
-          const key=e.currentTarget.dataset.key;
-          if(!currentUserRef) return showAuthError('User reference kosong');
-          currentUserRef.child(key).once('value',s=>{
-            const d=s.val();
-            if(!d) return showAuthError('Data tidak ditemukan');
-            alert(`Doa: ${d.doa || '-'}`);
-            alert(`Hari: ${d.hari}\nTanggal: ${d.tanggal}\nBacaan: ${d.bacaan}\nJP: ${d.jumlahPerikop}\nKeterangan: ${d.keterangan}\nAyat Emas: ${d.ayatEmas} Makna Bacaan: ${d.maknaBacaan || '-'}`);
-          }).catch(err=>showAuthError(err.message||err));
-        }));
+let currentModalKey = null; // simpan key data yang sedang dilihat
 
-        tbody.querySelectorAll('.btnEdit').forEach(b=>b.addEventListener('click', e=>{
+tbody.querySelectorAll('.btnView').forEach(b=>b.addEventListener('click', e=>{
+  const key = e.currentTarget.dataset.key;
+  if(!currentUserRef) return showAuthError('User reference kosong');
 
-          const key=e.currentTarget.dataset.key;
-          if(!currentUserRef) return showAuthError('User reference kosong');
-          currentUserRef.child(key).once('value',s=>{
-            const d=s.val();
-            if(!d) return showAuthError('Data tidak ditemukan');
-            document.getElementById('tanggal').value=d.tanggal||'';
-            document.getElementById('bacaan').value=d.bacaan||'';
-            document.getElementById('jumlahPerikop').value=d.jumlahPerikop||'';
-            document.getElementById('ayatEmas').value=d.ayatEmas||'';
-            document.getElementById('keterangan').value=d.keterangan||'Belum';
-            document.getElementById('maknaBacaan').value = d.maknaBacaan || '';
-            document.getElementById('doa').value = d.doa || '';
-            editKey=key;
-            btnCancelEdit.style.display='inline-block';
-          }).catch(err=>showAuthError(err.message||err));
-        }));
+  currentUserRef.child(key).once('value', s=>{
+    const d = s.val();
+    if(!d) return showAuthError('Data tidak ditemukan');
+
+    currentModalKey = key; // simpan key saat buka modal
+
+    // isi konten modal
+    modalContent.innerHTML = `
+      <p><strong>Hari:</strong> ${d.hari}</p>
+      <p><strong>Tanggal:</strong> ${d.tanggal}</p>
+      <p><strong>Bacaan:</strong> ${d.bacaan}</p>
+      <p><strong>JP:</strong> ${d.jumlahPerikop}</p>
+      <p><strong>Keterangan:</strong> ${d.keterangan}</p>
+      <p><strong>Ayat Emas:</strong> ${d.ayatEmas}</p>
+      <p><strong>Makna Bacaan:</strong> ${d.maknaBacaan || '-'}</p>
+      <p><strong>Doa:</strong> ${d.doa || '-'}</p>
+    `;
+    modal.style.display = 'flex';
+  }).catch(err=>showAuthError(err.message||err));
+}));
+
+// tombol Tutup
+modalClose.addEventListener('click', ()=> modal.style.display='none');
+modal.addEventListener('click', e=>{
+  if(e.target === modal) modal.style.display='none';
+});
+
+// tombol Edit
+modalEdit.addEventListener('click', ()=>{
+  if(!currentModalKey || !currentUserRef) return showAuthError('Data tidak tersedia untuk edit');
+
+  currentUserRef.child(currentModalKey).once('value', s=>{
+    const d = s.val();
+    if(!d) return showAuthError('Data tidak ditemukan');
+
+    // isi form utama dengan data
+    document.getElementById('tanggal').value=d.tanggal||'';
+    document.getElementById('bacaan').value=d.bacaan||'';
+    document.getElementById('jumlahPerikop').value=d.jumlahPerikop||'';
+    document.getElementById('ayatEmas').value=d.ayatEmas||'';
+    document.getElementById('keterangan').value=d.keterangan||'Belum';
+    document.getElementById('maknaBacaan').value = d.maknaBacaan || '';
+    document.getElementById('doa').value = d.doa || '';
+    editKey = currentModalKey; // set editKey untuk form submit
+    btnCancelEdit.style.display='inline-block';
+
+    modal.style.display='none'; // tutup modal setelah edit
+  }).catch(err=>showAuthError(err.message||err));
+});
+
+// tombol Hapus
+modalDelete.addEventListener('click', ()=>{
+  if(!currentModalKey || !currentUserRef) return showAuthError('Data tidak tersedia untuk hapus');
+  if(!confirm('Hapus data ini?')) return;
+
+  currentUserRef.child(currentModalKey).remove()
+    .then(()=> modal.style.display='none')
+    .catch(err=>showAuthError(err.message||err));
+});
+
+
+// close modal tombol & klik di luar
+modalClose.addEventListener('click', ()=> modal.style.display='none');
+modal.addEventListener('click', e=>{
+  if(e.target === modal) modal.style.display='none';
+});
 
         tbody.querySelectorAll('.btnDelete').forEach(b=>b.addEventListener('click', e=>{
           const key=e.currentTarget.dataset.key;
